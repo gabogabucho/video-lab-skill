@@ -23,7 +23,7 @@ _MULETILLAS = {"eh", "este"}
 
 
 def _norm(palabra: str) -> str:
-    return palabra.strip().strip(".,;:!?!¡¿\\\"'“”«»").lower()
+    return palabra.strip().strip(".,;:!?¡¿\"'“”«»").lower()
 
 
 def proponer_tramos(
