@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>capa gráfica</title>
+  <link rel="stylesheet" href="fuentes.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+    #safe { position: absolute; overflow: hidden; }
+    .escena {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 4%;
+      overflow: hidden;
+    }
+    .w { display: inline-block; white-space: pre; }
+  </style>
+</head>
+<body>
+  <!--
+    Motor de la sección 7. Prohibido en esta capa: transiciones y animaciones CSS,
+    setTimeout, setInterval, requestAnimationFrame y Date.now().
+    Cada cuadro se calcula desde t. La semilla se reinicia en cada render(t)
+    para que el cuadro no dependa de cuántas veces se llamó antes.
+  -->
+  <div id="safe"></div>
+  <script>
+    const $ = id => document.getElementById(id);
+    const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+    const P = (t, a, b) => clamp((t - a) / (b - a));
+    const lerp = (a, b, p) => a + (b - a) * p;
+    const eo  = p => 1 - Math.pow(1 - p, 3);
+    const ei  = p => p * p * p;
+    const eio = p => p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p + 2, 3) / 2;
+    const eb  = p => { const c = 1.70158; return 1 + (c+1)*Math.pow(p-1,3) + c*Math.pow(p-1,2); };
+
+    let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647, (seed - 1) / 2147483646);
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+    function mkCap(el, text) {
+      el.innerHTML = String(text).split(" ").map(w => `<span class="w">${esc(w)} </span>`).join("");
+      return [...el.children];
+    }
+    function showCap(words, t, start, step = .055, dur = .2, dy = 50) {
+      words.forEach((w, i) => {
+        const p = P(t, start + i * step, start + i * step + dur);
+        w.style.opacity = p;
+        w.style.transform = `translateY(${(1 - eo(p)) * dy}px)`;
+      });
+    }
+    function scene(id, on) {
+      const el = $(id);
+      if (el) el.style.display = on ? "block" : "none";
+    }
+
+    const L = () => window.VIDEO_LAB;
+    const px = n => (Number(n) || 0) * (L().formato.w / 1080);
+    function color(nombre) {
+      if (!nombre) return "#1c1c1c";
+      if (String(nombre).charAt(0) === "#") return nombre;
+      const tabla = (L().tokens && L().tokens.color) || {};
+      return tabla[nombre] || nombre;
+    }
+    function familia(rol) {
+      const font = (L().tokens && L().tokens.font) || {};
+      const nombre = font[rol] || font.texto || "Noto Sans";
+      return '"' + nombre + '", sans-serif';
+    }
+    const TAPAN = { texto_bloque: 1, titulo: 1, cierre: 1, numero_grande: 1 };
+
+    function texto_bloque(el, sc, t) {
+      const tok = L().tokens.texto_en_pantalla.hook;
+      el.style.alignItems = "center";
+      el.style.textAlign = "center";
+      const h = document.createElement("div");
+      h.style.display = "flex";
+      h.style.flexWrap = "wrap";
+      h.style.justifyContent = "center";
+      h.style.gap = "0.14em 0.16em";
+      h.style.fontFamily = familia(tok.font || "texto");
+      h.style.fontWeight = String(tok.peso || 800);
+      h.style.fontSize = px(tok.tamano || 100) + "px";
+      h.style.letterSpacing = tok.interletra || "-0.04em";
+      h.style.lineHeight = "1.02";
+      el.appendChild(h);
+      const words = mkCap(h, sc.texto || "");
+      words.forEach(w => {
+        w.textContent = w.textContent.trim();
+        w.style.background = color(tok.fondo || "texto");
+        w.style.color = color(tok.color || "superficie");
+        w.style.borderRadius = px(L().tokens.radio || 32) + "px";
+        w.style.padding = "0.02em 0.16em 0.08em";
+      });
+      showCap(words, t, sc.desde, 0.055, 0.2, px(50));
+    }
+
+    function titulo(el, sc, t) {
+      const tok = L().tokens.texto_en_pantalla.titulo;
+      el.style.alignItems = "center";
+      const h = document.createElement("div");
+      h.style.fontFamily = familia(tok.font || "texto");
+      h.style.fontWeight = String(tok.peso || 800);
+      h.style.fontSize = px(tok.tamano || 92) + "px";
+      h.style.letterSpacing = tok.interletra || "-0.04em";
+      h.style.color = color("texto");
+      h.style.textAlign = "center";
+      h.style.lineHeight = "0.95";
+      el.appendChild(h);
+      showCap(mkCap(h, sc.texto || ""), t, sc.desde, 0.08, 0.22, px(70));
+    }
+
+    function caos_a_orden(el, sc, t) {
+      seed = 7;
+      const items = sc.elementos || [];
+      const n = Math.max(items.length, 1);
+      const cols = Math.ceil(Math.sqrt(n));
+      const filas = Math.ceil(n / cols);
+      items.forEach((txt, i) => {
+        const x0 = rnd() * 70;
+        const y0 = rnd() * 70;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x1 = 4 + col * (90 / cols);
+        const y1 = 8 + row * (80 / filas);
+        const p = eb(P(t, sc.desde + 0.15 + i * 0.05, sc.desde + 0.7 + i * 0.05));
+        const chip = document.createElement("div");
+        chip.textContent = txt;
+        chip.style.position = "absolute";
+        chip.style.left = lerp(x0, x1, p) + "%";
+        chip.style.top = lerp(y0, y1, p) + "%";
+        chip.style.background = color("superficie");
+        chip.style.color = color("texto");
+        chip.style.border = "2px solid " + color("linea");
+        chip.style.borderRadius = px(L().tokens.radio || 32) + "px";
+        chip.style.padding = px(14) + "px " + px(18) + "px";
+        chip.style.fontFamily = familia("texto");
+        chip.style.fontWeight = "800";
+        chip.style.fontSize = px(36) + "px";
+        el.appendChild(chip);
+      });
+    }
+
+    function interfaz(el, sc, t) {
+      const datos = sc.datos && typeof sc.datos === "object" ? sc.datos : {};
+      const p = eb(P(t, sc.desde, sc.desde + 0.3));
+      const card = document.createElement("div");
+      card.style.width = "100%";
+      card.style.background = color("superficie");
+      card.style.border = Math.max(2, px(3)) + "px solid " + color("linea");
+      card.style.borderRadius = px(L().tokens.radio || 32) + "px";
+      card.style.padding = px(36) + "px";
+      card.style.transform = "scale(" + lerp(0.92, 1, p) + ")";
+      card.style.opacity = String(clamp(p));
+      card.style.fontFamily = familia("texto");
+      const tituloCard = document.createElement("div");
+      tituloCard.textContent = datos.titulo || sc.texto || "";
+      tituloCard.style.fontWeight = "800";
+      tituloCard.style.fontSize = px(40) + "px";
+      tituloCard.style.color = color("texto");
+      tituloCard.style.marginBottom = px(18) + "px";
+      card.appendChild(tituloCard);
+      (datos.items || []).forEach((item, i) => {
+        const pi = eo(P(t, sc.desde + 0.15 + i * 0.12, sc.desde + 0.4 + i * 0.12));
+        const row = document.createElement("div");
+        row.style.opacity = String(clamp(pi));
+        row.style.display = "flex";
+        row.style.justifyContent = "space-between";
+        row.style.gap = px(16) + "px";
+        row.style.fontSize = px(32) + "px";
+        row.style.fontWeight = "800";
+        row.style.color = color("texto");
+        row.style.padding = px(10) + "px 0";
+        row.style.borderTop = "1px solid " + color("linea");
+        const izq = document.createElement("div");
+        izq.textContent = typeof item === "string" ? item : (item.nombre || "");
+        const der = document.createElement("div");
+        der.textContent = typeof item === "string" ? "" : (item.monto || item.detalle || "");
+        der.style.color = color("primario");
+        row.appendChild(izq);
+        row.appendChild(der);
+        card.appendChild(row);
+      });
+      if (datos.boton) {
+        const pb = eb(P(t, sc.desde + 0.45, sc.desde + 0.7));
+        const b = document.createElement("div");
+        b.textContent = datos.boton;
+        b.style.marginTop = px(18) + "px";
+        b.style.opacity = String(clamp(pb));
+        b.style.background = color("acento");
+        b.style.color = color("superficie");
+        b.style.display = "inline-block";
+        b.style.fontWeight = "800";
+        b.style.fontSize = px(32) + "px";
+        b.style.padding = px(12) + "px " + px(24) + "px";
+        b.style.borderRadius = px(16) + "px";
+        card.appendChild(b);
+      }
+      el.appendChild(card);
+    }
+
+    function interfaz_lateral(el, sc, t) {
+      el.style.alignItems = "flex-start";
+      el.style.justifyContent = "center";
+      interfaz(el, sc, t);
+      const card = el.firstChild;
+      if (card) card.style.width = "88%";
+    }
+
+    function antes_despues(el, sc, t) {
+      el.style.padding = "0";
+      const antes = _panel(sc.antes || "Antes", color("suave"), color("texto"));
+      const despues = _panel(sc.despues || "Después", color("primario"), color("superficie"));
+      const p = eo(P(t, sc.desde + 0.2, sc.desde + 0.85));
+      despues.style.clipPath = "inset(0 0 0 " + ((1 - p) * 100) + "%)";
+      el.appendChild(antes);
+      el.appendChild(despues);
+    }
+    function _panel(texto, fondo, tinta) {
+      const d = document.createElement("div");
+      d.textContent = texto;
+      d.style.position = "absolute";
+      d.style.inset = "0";
+      d.style.display = "flex";
+      d.style.alignItems = "center";
+      d.style.justifyContent = "center";
+      d.style.background = fondo;
+      d.style.color = tinta;
+      d.style.fontFamily = familia("texto");
+      d.style.fontWeight = "800";
+      d.style.fontSize = px(80) + "px";
+      d.style.textAlign = "center";
+      d.style.padding = "8%";
+      return d;
+    }
+
+    function lista_animada(el, sc, t) {
+      el.style.alignItems = "flex-start";
+      if (sc.texto) {
+        const h = document.createElement("div");
+        h.textContent = sc.texto;
+        h.style.fontFamily = familia("texto");
+        h.style.fontWeight = "800";
+        h.style.fontSize = px(40) + "px";
+        h.style.color = color("acento");
+        h.style.marginBottom = px(8) + "px";
+        el.appendChild(h);
+      }
+      (sc.items || []).forEach((item, i) => {
+        const p = eo(P(t, sc.desde + i * 0.28, sc.desde + i * 0.28 + 0.25));
+        const row = document.createElement("div");
+        row.textContent = item;
+        row.style.opacity = String(clamp(p));
+        row.style.transform = "translateY(" + ((1 - p) * px(36)) + "px)";
+        row.style.fontFamily = familia("texto");
+        row.style.fontWeight = "800";
+        row.style.fontSize = px(64) + "px";
+        row.style.color = color("texto");
+        row.style.lineHeight = "1.15";
+        el.appendChild(row);
+      });
+    }
+
+    function numero_grande(el, sc, t) {
+      el.style.alignItems = "center";
+      el.style.textAlign = "center";
+      const fin = Math.min(sc.hasta - 0.15, sc.desde + 0.9);
+      const p = eo(P(t, sc.desde, fin));
+      const valor = Math.round(Number(sc.valor || 0) * clamp(p));
+      const num = document.createElement("div");
+      const texto = (sc.prefijo || "") + valor.toLocaleString("es-AR") + (sc.sufijo || "");
+      num.textContent = texto;
+      num.style.fontFamily = familia("texto");
+      num.style.fontWeight = "800";
+      num.style.fontSize = px(150) + "px";
+      num.style.color = color("acento");
+      num.style.letterSpacing = "-0.04em";
+      num.style.lineHeight = "0.9";
+      el.appendChild(num);
+      if (sc.texto) {
+        const etiqueta = document.createElement("div");
+        etiqueta.textContent = sc.texto;
+        etiqueta.style.fontFamily = familia("texto");
+        etiqueta.style.fontWeight = "800";
+        etiqueta.style.fontSize = px(42) + "px";
+        etiqueta.style.color = color("texto");
+        etiqueta.style.marginTop = px(12) + "px";
+        el.appendChild(etiqueta);
+      }
+    }
+
+    function cierre(el, sc, t) {
+      el.style.alignItems = "center";
+      el.style.textAlign = "center";
+      el.style.gap = px(22) + "px";
+      if (L().logo) {
+        const img = document.createElement("img");
+        img.src = "../brand/logo.png";
+        img.alt = "";
+        const p = eb(P(t, sc.desde, sc.desde + 0.28));
+        img.style.width = px(200) + "px";
+        img.style.height = "auto";
+        img.style.transform = "scale(" + lerp(0.5, 1, p) + ")";
+        img.style.opacity = String(clamp(p));
+        el.appendChild(img);
+      }
+      const frase = document.createElement("div");
+      const tok = L().tokens.texto_en_pantalla.titulo;
+      frase.style.fontFamily = familia(tok.font || "texto");
+      frase.style.fontWeight = String(tok.peso || 800);
+      frase.style.fontSize = px(68) + "px";
+      frase.style.letterSpacing = tok.interletra || "-0.04em";
+      frase.style.color = color("texto");
+      frase.style.lineHeight = "1";
+      el.appendChild(frase);
+      showCap(mkCap(frase, sc.texto || ""), t, sc.desde + 0.1, 0.06, 0.22, px(40));
+      if (sc.cta) {
+        const p = eb(P(t, sc.desde + 0.28, sc.desde + 0.5));
+        const cta = document.createElement("div");
+        cta.textContent = sc.cta;
+        cta.style.opacity = String(clamp(p));
+        cta.style.transform = "scale(" + lerp(0.86, 1, p) + ")";
+        cta.style.background = color("primario");
+        cta.style.color = color("superficie");
+        cta.style.fontFamily = familia("texto");
+        cta.style.fontWeight = "800";
+        cta.style.fontSize = px(44) + "px";
+        cta.style.padding = px(16) + "px " + px(32) + "px";
+        cta.style.borderRadius = px(L().tokens.radio || 32) + "px";
+        el.appendChild(cta);
+      }
+      if (sc.url) {
+        const url = String(sc.url);
+        // Termina antes del final de la escena para que la URL quede quieta un momento.
+        const t0 = sc.desde + 0.28;
+        const t1 = Math.min(sc.hasta - 0.28, sc.desde + 0.7);
+        const p = P(t, t0, Math.max(t1, t0 + 0.25));
+        const nodo = document.createElement("div");
+        nodo.textContent = url.slice(0, Math.floor(clamp(p) * url.length));
+        nodo.style.fontFamily = familia("mono");
+        nodo.style.fontWeight = "800";
+        nodo.style.fontSize = px(34) + "px";
+        nodo.style.color = color("acento");
+        nodo.style.minHeight = "1.2em";
+        el.appendChild(nodo);
+      }
+    }
+
+    function borde(pxBorde, tinta) {
+      const n = Math.max(1, pxBorde);
+      const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+      return dirs.map(([dx, dy]) => (dx * n) + "px " + (dy * n) + "px 0 " + tinta).join(", ");
+    }
+
+    function pintarSubtitulos(safe, t) {
+      const lab = L();
+      const palabras = lab.palabras || [];
+      const tok = lab.tokens.texto_en_pantalla.subtitulo || {};
+      const sub = document.createElement("div");
+      sub.id = "sub";
+      sub.style.position = "absolute";
+      sub.style.left = "4%";
+      sub.style.right = "4%";
+      sub.style.bottom = "6%";
+      sub.style.textAlign = "center";
+      sub.style.fontFamily = familia(tok.font || "texto");
+      sub.style.fontWeight = String(tok.peso || 800);
+      sub.style.fontSize = px(tok.tamano || 64) + "px";
+      sub.style.lineHeight = "1.15";
+      sub.style.color = color("superficie");
+      sub.style.textShadow = borde(px(tok.borde || 6), color("texto"));
+      const activa = palabras.findIndex(p => t >= p.a && t < p.b + 0.15);
+      if (activa < 0) {
+        sub.style.opacity = "0";
+        safe.appendChild(sub);
+        return;
+      }
+      const bloques = lab.bloques || [];
+      const bloque = bloques.find(b => activa >= b.i0 && activa <= b.i1);
+      const grupo = bloque ? bloque.palabras : [palabras[activa]];
+      const i0 = bloque ? bloque.i0 : activa;
+      sub.innerHTML = grupo.map((p, i) => {
+        const cls = (i0 + i === activa) ? "activa" : "";
+        const col = cls ? color("acento") : color("superficie");
+        return '<span class="' + cls + '" style="color:' + col + '">' + esc(p.w) + "</span>";
+      }).join(" ");
+      sub.style.opacity = "1";
+      safe.appendChild(sub);
+    }
+
+    const PLANTILLAS = {
+      texto_bloque, titulo, caos_a_orden, interfaz, interfaz_lateral,
+      antes_despues, lista_animada, numero_grande, cierre
+    };
+
+    function render(t) {
+      const lab = L();
+      if (!lab) return;
+      seed = 7;
+      const z = lab.zona;
+      const safe = $("safe");
+      safe.style.left = z.x0 + "px";
+      safe.style.top = z.y0 + "px";
+      safe.style.width = (z.x1 - z.x0) + "px";
+      safe.style.height = (z.y1 - z.y0) + "px";
+      const fondo = lab.con_alfa ? "transparent" : color("fondo");
+      document.documentElement.style.background = fondo;
+      document.body.style.background = fondo;
+      safe.replaceChildren();
+      let tapa = false;
+      (lab.escenas || []).forEach(sc => {
+        const on = t >= sc.desde - 1e-4 && t < sc.hasta - 1e-4;
+        if (!on || sc.plantilla === "subtitulos") return;
+        if (TAPAN[sc.plantilla]) tapa = true;
+        const el = document.createElement("div");
+        el.className = "escena";
+        if (sc.id) el.id = sc.id;
+        safe.appendChild(el);
+        const fn = PLANTILLAS[sc.plantilla];
+        if (!fn) throw new Error("Plantilla desconocida: " + sc.plantilla);
+        fn(el, sc, t);
+      });
+      if (lab.subtitulos && lab.subtitulos.activar && !tapa) pintarSubtitulos(safe, t);
+    }
+    window.render = render;
+  </script>
+</body>
+</html>
