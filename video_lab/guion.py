@@ -83,7 +83,7 @@ def bloques_de_subtitulos(palabras: list[dict], minimo: int = 2, maximo: int = 4
     actual: list[dict] = []
     for indice, palabra in enumerate(palabras):
         actual.append({**palabra, "i": indice})
-        cierra = bool(re.search(r"[.!?\u2026:]$", str(palabra["w"]).strip()))
+        cierra = bool(re.search(r"[.!?…:]$", str(palabra["w"]).strip()))
         if len(actual) >= maximo or (len(actual) >= minimo and cierra):
             bloques.append(actual)
             actual = []
