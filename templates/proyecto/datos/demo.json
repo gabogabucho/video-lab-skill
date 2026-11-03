@@ -1,0 +1,8 @@
+{
+  "titulo": "Pedido 184",
+  "items": [
+    {"nombre": "Café de olla", "detalle": "Listo", "monto": "$1.200"},
+    {"nombre": "Medialunas", "detalle": "En horno", "monto": "$800"}
+  ],
+  "boton": "Entregar"
+}

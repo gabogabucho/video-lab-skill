@@ -1,0 +1,7 @@
+texto.ttf lo baja scripts/setup.sh.
+Es Noto Sans ExtraBold, del proyecto Noto (OFL).
+https://github.com/notofonts/notofonts.github.io/tree/main/fonts/NotoSans/full/ttf
+La licencia queda al lado, en OFL.txt.
+No es una fuente de marca: en un proyecto real se reemplaza por la del cliente,
+después de verificar que tenga ¿ ¡ á é í ó ú ñ ü.
+sha256 678c30c8d959caa7b71dea8bfca5d2c46a5e1107d4f7a1ea3863ce51705a5fab

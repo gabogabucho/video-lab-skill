@@ -1,0 +1,56 @@
+{
+  "formato": {"w": 1080, "h": 1920, "fps": 30, "duracion": "auto"},
+  "plataforma": "tiktok",
+  "marca": "brand/tokens.json",
+  "fuentes": {
+    "A": "crudo/toma_principal.mp4",
+    "B": "crudo/producto_detalle.mp4"
+  },
+  "edicion": [
+    {"fuente": "A", "in": 3.2, "out": 7.85, "velocidad": 1.0, "encuadre": "cara"},
+    {"fuente": "B", "in": 0.0, "out": 2.1, "velocidad": 1.0, "encuadre": "centro"},
+    {
+      "fuente": "A",
+      "in": 12.4,
+      "out": 18.9,
+      "velocidad": 1.05,
+      "encuadre": "cara",
+      "zoom": [{"t": 2.0, "escala": 1.18, "dur": 0.15}]
+    }
+  ],
+  "escenas": [
+    {
+      "id": "hook",
+      "desde": 0.0,
+      "hasta": 2.5,
+      "plantilla": "texto_bloque",
+      "texto": "Frase del hook en pocas palabras"
+    },
+    {
+      "id": "demo",
+      "desde": 4.6,
+      "hasta": 6.7,
+      "plantilla": "interfaz_lateral",
+      "datos": "datos/demo.json"
+    },
+    {
+      "id": "cierre",
+      "desde": "fin-3.5",
+      "hasta": "fin",
+      "plantilla": "cierre",
+      "texto": "Frase de cierre",
+      "cta": "Llamado a la acción",
+      "url": "norte.ejemplo"
+    }
+  ],
+  "subtitulos": {"activar": false, "estilo": "palabra_por_palabra", "zona": "media_baja"},
+  "audio": {
+    "voz": "fuente",
+    "limpieza": true,
+    "eventos_sfx": [
+      {"t": 2.5, "tipo": "whoosh", "gain": 0.35},
+      {"t": "zoom", "tipo": "pop", "gain": 0.3}
+    ],
+    "musica": null
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "formato": {"w": 540, "h": 960, "fps": 12, "duracion": 2.0},
+  "plataforma": "tiktok",
+  "marca": "brand/tokens.json",
+  "fuentes": {},
+  "edicion": [],
+  "escenas": [
+    {
+      "id": "hook",
+      "desde": 0.0,
+      "hasta": 1.05,
+      "plantilla": "texto_bloque",
+      "texto": "¿Listo, ñandú?"
+    },
+    {
+      "id": "cierre",
+      "desde": 1.05,
+      "hasta": 2.0,
+      "plantilla": "cierre",
+      "texto": "Corte fino",
+      "cta": "Seguí",
+      "url": "norte.ejemplo"
+    }
+  ],
+  "subtitulos": {"activar": false, "estilo": "palabra_por_palabra", "zona": "media_baja"},
+  "audio": {
+    "voz": null,
+    "limpieza": false,
+    "eventos_sfx": [
+      {"t": 0.08, "tipo": "pop", "gain": 0.45},
+      {"t": 1.05, "tipo": "whoosh", "gain": 0.35}
+    ],
+    "musica": null
+  }
+}

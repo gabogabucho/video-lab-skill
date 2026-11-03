@@ -1,0 +1,4 @@
+face_detection_yunet.onnx lo baja scripts/setup.sh.
+Es el YuNet 2023mar de opencv_zoo, guardado con el nombre que usa la guía.
+https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet
+sha256 8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4
