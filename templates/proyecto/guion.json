@@ -1,0 +1,62 @@
+{
+  "formato": {"w": 1080, "h": 1920, "fps": 30, "duracion": 11.4},
+  "plataforma": "tiktok",
+  "marca": "brand/tokens.json",
+  "fuentes": {},
+  "edicion": [],
+  "escenas": [
+    {
+      "id": "hook",
+      "desde": 0.0,
+      "hasta": 2.2,
+      "plantilla": "texto_bloque",
+      "texto": "Menos pasos, mismo pedido"
+    },
+    {
+      "id": "lista",
+      "desde": 2.2,
+      "hasta": 4.4,
+      "plantilla": "lista_animada",
+      "texto": "En el local",
+      "items": ["Entra el pedido", "Sale a cocina", "Se entrega"]
+    },
+    {
+      "id": "demo",
+      "desde": 4.4,
+      "hasta": 6.6,
+      "plantilla": "interfaz_lateral",
+      "datos": "datos/demo.json"
+    },
+    {
+      "id": "numero",
+      "desde": 6.6,
+      "hasta": 8.4,
+      "plantilla": "numero_grande",
+      "valor": 12,
+      "sufijo": " min",
+      "texto": "Tiempo medio"
+    },
+    {
+      "id": "cierre",
+      "desde": 8.4,
+      "hasta": 11.4,
+      "plantilla": "cierre",
+      "texto": "Pedí en el mostrador",
+      "cta": "Probá hoy",
+      "url": "norte.ejemplo"
+    }
+  ],
+  "subtitulos": {"activar": false, "estilo": "palabra_por_palabra", "zona": "media_baja"},
+  "audio": {
+    "voz": null,
+    "limpieza": false,
+    "eventos_sfx": [
+      {"t": 0.12, "tipo": "pop", "gain": 0.4},
+      {"t": 2.2, "tipo": "whoosh", "gain": 0.3},
+      {"t": 4.4, "tipo": "click", "gain": 0.35},
+      {"t": 6.6, "tipo": "thump", "gain": 0.32},
+      {"t": 8.4, "tipo": "ding", "gain": 0.22}
+    ],
+    "musica": null
+  }
+}
