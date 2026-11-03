@@ -1,0 +1,30 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.eggs/
+.pytest_cache/
+out/
+trabajo/
+tramos/
+tmp/
+.cache/
+*.mov
+*.wav
+capas/fuentes.css
+**/fuentes.css
+
+# Los baja scripts/setup.sh. No van en el repo.
+share/fonts/texto.ttf
+share/fonts/OFL.txt
+share/models/*.onnx
+**/brand/fonts/*.ttf
+**/brand/fonts/*.otf
+**/brand/fonts/*.woff
+**/brand/fonts/*.woff2
+
+# El markdown de origen, si quedó pegado al workspace.
+/uploads/
+
+.DS_Store
+.env
